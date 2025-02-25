@@ -2,14 +2,17 @@ import torch
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 
+"MNIST", "CIFAR10", ""
+
 
 def load_MNIST(
+    dataset="MNIST",
     train_size=None,
     test_size=None,
     val_size=None,
     batch_size=32,
-    shuffle = False,
-    download = True,
+    shuffle=False,
+    download=True,
     root="./data",
 ):
     """
@@ -32,12 +35,27 @@ def load_MNIST(
     transform = transforms.ToTensor()
 
     # Load the full training and test datasets
-    full_train_dataset = datasets.MNIST(
-        root=root, train=True, download=download, transform=transform
-    )
-    full_test_dataset = datasets.MNIST(
-        root=root, train=False, download=download, transform=transform
-    )
+    if dataset == "MNIST":
+        full_train_dataset = datasets.MNIST(
+            root=root, train=True, download=download, transform=transform
+        )
+        full_test_dataset = datasets.MNIST(
+            root=root, train=False, download=download, transform=transform
+        )
+    elif dataset == "CIFAR10":
+        full_test_dataset = datasets.CIFAR10(
+            root=root, train=False, download=download, transform=transform
+        )
+        full_train_dataset = datasets.CIFAR10(
+            root=root, train=True, download=download, transform=transform
+        )
+    elif dataset == "TinyImageNET":
+        full_train_dataset = datasets.ImageFolder(
+            root=root + "/tiny-imagenet-200/train", transform=transform
+        )
+        full_test_dataset = datasets.ImageFolder(
+            root=root + "/tiny-imagenet-200/val", transform=transform
+        )
 
     # Subset the training dataset if a train_size is provided
     if train_size is not None:
