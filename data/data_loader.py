@@ -104,7 +104,7 @@ def dataloader_(
 
 # Example usage:
 if __name__ == "__main__":
-    train_loader, val_loader, test_loader = load_MNIST(
+    train_loader, val_loader, test_loader = dataloader_(
         train_size=50000, test_size=10000, val_size=10000, batch_size=64
     )
 
