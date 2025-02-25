@@ -7,6 +7,7 @@ import torch.optim as optim
 from model.CNN_model import train
 import pandas as pd
 
+
 def BaysianOpt(
     CNNmodel,
     dimensions,
@@ -44,6 +45,7 @@ def BaysianOpt(
     # n_points = optimizer_params["n_points"]
     # verbose = optimizer_params["verbose"]
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     def objective(x):
         model = CNNmodel(*x)
 
@@ -64,15 +66,13 @@ def BaysianOpt(
 
     return gp_minimize(objective, dimensions, **optimizer_params)
 
-def save_results(optimize_result, dimensions, optimizer_params, filename="BO_results.csv"):
+
+def save_results(
+    optimize_result, dimensions, optimizer_params, filename="BO_results.csv"
+):
 
     # Prepare a dictionary to collect results for plotting.
-    result_data = {
-        "iteration": [],
-        "acq_func": [],
-        "acq_value": [],
-        "accuracy": []
-    }
+    result_data = {"iteration": [], "acq_func": [], "acq_value": [], "accuracy": []}
 
     # Add a column for each hyperparameter.
     for dim in dimensions:
