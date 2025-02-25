@@ -2,7 +2,7 @@ from skopt.space import Integer, Categorical
 import torch
 from model.CNN_model import CNN, train
 from BO.BO import BaysianOpt, save_results
-from data.data_loader import load_MNIST
+from data.data_loader import dataloader_
 import numpy as np
 from visualization import *
 import random
@@ -62,7 +62,7 @@ data_loader_params = {
 train_epoch = 10
 
 # Load MNIST data
-train_loader, val_loader, test_loader = load_MNIST(**data_loader_params)
+train_loader, val_loader, test_loader = dataloader_(**data_loader_params)
 
 # Perform Bayesian Optimization
 OptimizeResult = BaysianOpt(

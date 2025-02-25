@@ -5,7 +5,7 @@ from torchvision import datasets, transforms
 "MNIST", "CIFAR10", ""
 
 
-def load_MNIST(
+def dataloader_(
     dataset="MNIST",
     train_size=None,
     test_size=None,
