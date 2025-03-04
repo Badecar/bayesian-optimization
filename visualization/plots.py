@@ -42,6 +42,89 @@ def plot_metric_over_iterations(df, metric):
     plt.tight_layout()
     plt.show()
 
+
+
+def plot_metric_over_iterations2(dfbo, dfrs, metric, style="in_one", mean=None):
+    """
+    Plot the given metric over iterations for both datasets with selectable plot style,
+    including the option to add a mean line, and highlight the minimum points.
+
+    Parameters:
+      - dfbo: First DataFrame (Baysian Optimization).
+      - dfrs: Second DataFrame (Random Search).
+      - metric: The name of the metric column to visualize.
+      - style: 'in_one' to plot both datasets on the same plot, 'on_top' to plot them stacked vertically.
+      - mean: A specific value to plot as a horizontal line, or None to disable the mean line.
+    """
+    # Define dataset names for the legend
+    name_bo = 'Bayesian Opt.'
+    name_rs = 'Random Search'
+
+    # Calculate the minimum value and corresponding iteration for both datasets
+    min_bo_value = dfbo[metric].min()
+    min_bo_iteration = dfbo[dfbo[metric] == min_bo_value]["iteration"].values[0]
+    
+    min_rs_value = dfrs[metric].min()
+    min_rs_iteration = dfrs[dfrs[metric] == min_rs_value]["iteration"].values[0]
+
+    if style == "in_one":
+        # Plot both datasets on the same plot
+        plt.figure(figsize=(10, 6))
+        
+        # Plot Dataset 1 in blue and Dataset 2 in red (or choose any colors you like)
+        sns.scatterplot(data=dfbo, x="iteration", y=metric, label=name_bo, color="blue", marker="o", alpha=0.7)
+        sns.scatterplot(data=dfrs, x="iteration", y=metric, label=name_rs, color="red", marker="o", alpha=0.7)
+
+        # Highlight the minimums with larger dots
+        plt.scatter(min_bo_iteration, min_bo_value, color="blue", s=200, zorder=5, marker="*",edgecolor="black")
+        plt.scatter(min_rs_iteration, min_rs_value, color="red", s=200, zorder=5, marker="*",edgecolor="black",)
+        
+        # Add mean line if provided
+        if mean is not None:
+            plt.axhline(mean, color='orange', linestyle='--', label='Human Baseline')
+        
+        # Title, labels, and grid
+        plt.xlabel("Iteration")
+        if metric == 'acq_value':
+            plt.ylabel("Cross Entropy")
+        else:
+          plt.ylabel(metric)
+
+        plt.grid(True,alpha=0.7,linestyle="--")
+
+    elif style == "on_top":
+        # Plot two separate subplots (one on top of the other)
+        fig, axes = plt.subplots(2, 1, figsize=(10, 12), sharex=True)
+
+        # Plot Dataset 1 on first axis
+        sns.lineplot(data=dfbo, x="iteration", y=metric, label=name_bo, color="blue", marker="o", ax=axes[0])
+        axes[0].scatter(min_bo_iteration, min_bo_value, color="blue", s=100, label=f'Min of {name_bo} = {min_bo_value:.2f}', zorder=5)
+        if mean is not None:
+            axes[0].axhline(mean, color='orange', linestyle='--', label=f'Mean = {mean}')
+        axes[0].set_title(f'{metric} over iterations - {name_bo}')
+        axes[0].set_xlabel("Iteration")
+        axes[0].set_ylabel(metric)
+        axes[0].legend(title="Dataset")
+        axes[0].grid(True)
+
+        # Plot Dataset 2 on second axis
+        sns.lineplot(data=dfrs, x="iteration", y=metric, label=name_rs, color="red", marker="o", ax=axes[1])
+        axes[1].scatter(min_rs_iteration, min_rs_value, color="red", s=100, label=f'Min of {name_rs} = {min_rs_value:.2f}', zorder=5)
+        if mean is not None:
+            axes[1].axhline(mean, color='orange', linestyle='--', label=f'Mean = {mean}')
+        axes[1].set_title(f'{metric} over iterations - {name_rs}')
+        axes[1].set_xlabel("Iteration")
+        axes[1].set_ylabel(metric)
+        axes[1].legend(title="Dataset")
+        axes[1].grid(True)
+
+    # Ensure the mean line is included in the legend in the combined plot (if applicable)
+    if mean is not None:
+        plt.legend(loc="best")
+
+    plt.tight_layout()
+    plt.show()
+
 def plot_maxpool_size_vs_accuracy(df):
     """
     Create a scatter plot showing the trade-off between model size and accuracy.
