@@ -95,13 +95,13 @@ train_epoch = 10
 train_loader, val_loader, test_loader = dataloader_(**data_loader_params)
 
 # Choose which dimensions to use
-human_dimensions_used = False
+human_dimensions_used = True
 
 if human_dimensions_used:
     dimensions = human_dimensions
     file_extra = "_human"
-    optimizer_params["n_calls"] = 1
-    optimizer_params["n_initial_points"] = 1
+    optimizer_params["n_calls"] = 20
+    optimizer_params["n_initial_points"] = 20
     optimizer_params["initial_point_generator"] = "random"
 else:
     file_extra = f"_auto_{optimizer_params['acq_func']}"
