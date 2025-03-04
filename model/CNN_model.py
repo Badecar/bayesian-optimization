@@ -4,62 +4,74 @@ import torch.nn.functional as F
 
 
 class CNN(nn.Module):
+
     def __init__(
         self,
         conv_nodes_1,
         conv_nodes_2,
         kernel_size_1,
         kernel_size_2,
-        maxpool_size,
+        maxpool_size,  # Used when using standard max pooling
+        pooling_strategy,  # "max" for standard max pooling, "mac" for global MAC pooling
         dropout_rate,
         fc_nodes,
+        input_shape=(3, 32, 32),  # Default for MNIST; change for other datasets
     ):
         super(CNN, self).__init__()
-        # First convolution: 1 input channel (grayscale), 32 output channels, 3x3 kernel, padding to preserve spatial dimensions
+        self.input_shape = input_shape
+
+        # Convolutional layers
         self.conv1 = nn.Conv2d(
-            in_channels=1,
+            in_channels=input_shape[0],
             out_channels=conv_nodes_1,
             kernel_size=kernel_size_1,
-            padding=int((kernel_size_1 - 1) / 2),
+            padding=(kernel_size_1 - 1) // 2,
         )
-
-        # Second convolution: 32 input channels, 64 output channels
         self.conv2 = nn.Conv2d(
             in_channels=conv_nodes_1,
             out_channels=conv_nodes_2,
             kernel_size=kernel_size_2,
-            padding=int((kernel_size_2 - 1) / 2),
+            padding=(kernel_size_2 - 1) // 2,
         )
-        self.conv_2 = conv_nodes_2
-        # Max pooling layer with 2x2 kernel
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+
+        # Choose pooling layer based on pooling_strategy
+        self.pooling_strategy = pooling_strategy.lower()
+        if self.pooling_strategy == "mac":
+            # Global MAC pooling: output size will be (batch, channels, 1, 1)
+            self.pool = nn.AdaptiveMaxPool2d((1, 1))
+        else:
+            # Standard max pooling with fixed kernel size and stride
+            self.pool = nn.MaxPool2d(kernel_size=maxpool_size, stride=maxpool_size)
 
         # Dropout for regularization
         self.dropout = nn.Dropout(dropout_rate)
 
-        # After two poolings, the 28x28 image becomes 7x7 (since 28 -> 14 -> 7)
-        self.fc1 = nn.Linear(conv_nodes_2 * 7 * 7, fc_nodes)
-        self.fc2 = nn.Linear(fc_nodes, 10)  # 10 output classes for MNIST
+        # Dynamically determine the flattened feature size for the first FC layer.
+        dummy_input = torch.rand(1, *input_shape)
+        fc_input_dim = self._get_conv_output(dummy_input)
+        self.fc1 = nn.Linear(fc_input_dim, fc_nodes)
+        self.fc2 = nn.Linear(
+            fc_nodes, 10
+        )  # Adjust if you have a different number of classes
+
+    def _get_conv_output(self, x):
+        """Pass a dummy input through conv layers and pooling to calculate flattened dimension."""
+        with torch.no_grad():
+            x = F.relu(self.conv1(x))
+            x = F.relu(self.conv2(x))
+            x = self.pool(x)
+            return x.view(1, -1).shape[1]
 
     def forward(self, x):
-        # Input x shape: (batch_size, 1, 28, 28)
-        x = F.relu(self.conv1(x))  # -> (batch_size, 32, 28, 28)
-        x = self.pool(x)  # -> (batch_size, 32, 14, 14)
-        x = F.relu(self.conv2(x))  # -> (batch_size, 64, 14, 14)
-        x = self.pool(x)  # -> (batch_size, 64, 7, 7)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = self.pool(x)
         x = self.dropout(x)
-        x = x.view(
-            -1, self.conv_2 * 7 * 7
-        )  # Flatten the tensor for the fully connected layer
+        x = x.view(x.size(0), -1)  # Flatten dynamically
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
-        x = self.fc2(x)  # Output logits for each of the 10 classes
+        x = self.fc2(x)
         return x
-
-
-# Example usage:
-# model = MNIST_CNN()
-# output = model(torch.randn(64, 1, 28, 28))  # Dummy batch of 64 images
 
 
 def train(model, device, train_loader, test_loader, optimizer, num_epochs):
@@ -90,18 +102,23 @@ def train(model, device, train_loader, test_loader, optimizer, num_epochs):
         """
         model.eval()  # Set the model to evaluation mode
         correct = 0
+        loss = 0
+
         with torch.no_grad():
             for data, target in test_loader:
                 data, target = data.to(device), target.to(device)
                 output = model(data)
                 # Sum up batch loss (using sum to later compute the average loss)
+                loss += F.cross_entropy(output, target, reduction="sum").item()
+
                 # Get the index of the max log-probability (predicted class)
                 pred = output.argmax(dim=1, keepdim=True)
                 correct += pred.eq(target.view_as(pred)).sum().item()
 
         accuracy = correct / len(test_loader.dataset)
+        loss = loss / len(test_loader.dataset)
 
-        return accuracy
+        return accuracy, loss
 
     model.train()  # Set the model to training mode
     for epoch in range(1, num_epochs + 1):
@@ -115,5 +132,5 @@ def train(model, device, train_loader, test_loader, optimizer, num_epochs):
             optimizer.step()  # Update model parameters
 
     # If a test_loader is provided, evaluate the model after each epoch
-    accuracy = evaluate(model, device, test_loader)
-    return accuracy
+    accuracy, loss = evaluate(model, device, test_loader)
+    return accuracy, loss

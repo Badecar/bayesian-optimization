@@ -1,0 +1,2 @@
+iteration,acq_func,acq_value,accuracy,conv_nodes_1,conv_nodes_2,kernel_size_1,kernel_size_2,maxpool_size,pooling_strategy,dropout_rate,fc_nodes,input_shape,lr
+1,gp_hedge,-0.39,0.39,48,68,3,3,2,max,0.3,512,"(3, 32, 32)",0.001

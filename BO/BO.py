@@ -6,6 +6,7 @@ import torch
 import torch.optim as optim
 from model.CNN_model import train
 import pandas as pd
+import os
 
 
 def BaysianOpt(
@@ -47,13 +48,39 @@ def BaysianOpt(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def objective(x):
-        model = CNNmodel(*x)
+        # Unpack hyperparameters. Note the new 'lr' parameter is at the end.
+        (
+            conv_nodes_1,
+            conv_nodes_2,
+            kernel_size_1,
+            kernel_size_2,
+            maxpool_size,
+            pooling_strategy,
+            dropout_rate,
+            fc_nodes,
+            input_shape,
+            lr,
+        ) = x
 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = CNNmodel(*x).to(device)
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        input_shape = tuple(map(int, input_shape.strip("()").split(",")))
 
-        test_accuracy = train(
+        # Instantiate the model with the given hyperparameters.
+        model = CNNmodel(
+            conv_nodes_1,
+            conv_nodes_2,
+            kernel_size_1,
+            kernel_size_2,
+            maxpool_size,
+            pooling_strategy,
+            dropout_rate,
+            fc_nodes,
+            input_shape=(3, 32, 32),  # Use a fixed input shape, or change as needed.
+        ).to(device)
+
+        # Use the learning rate from the hyperparameters.
+        optimizer = optim.Adam(model.parameters(), lr=lr)
+
+        test_accuracy, test_loss = train(
             model,
             device,
             train_dataloader,
@@ -62,7 +89,8 @@ def BaysianOpt(
             train_epochs,
         )
 
-        return -test_accuracy
+        # Return negative accuracy (if maximizing accuracy).
+        return test_loss  # -test_accuracy
 
     return gp_minimize(objective, dimensions, **optimizer_params)
 
@@ -92,5 +120,6 @@ def save_results(
 
     # Create a DataFrame and save to CSV.
     df = pd.DataFrame(result_data)
-    df.to_csv(filename, index=False)
+    filepath = os.path.join("visualization", filename)
+    df.to_csv(filepath, index=False)
     print("Results saved to results.csv")
