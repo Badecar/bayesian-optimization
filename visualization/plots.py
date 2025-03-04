@@ -72,8 +72,8 @@ def plot_metric_over_iterations2(dfbo, dfrs, metric, style="in_one", mean=None):
         plt.figure(figsize=(10, 6))
         
         # Plot Dataset 1 in blue and Dataset 2 in red (or choose any colors you like)
-        sns.scatterplot(data=dfbo, x="iteration", y=metric, label=name_bo, color="blue", marker="o", alpha=0.7)
-        sns.scatterplot(data=dfrs, x="iteration", y=metric, label=name_rs, color="red", marker="o", alpha=0.7)
+        sns.scatterplot(data=dfbo, x="iteration", y=metric, label=name_bo, color="blue", marker="o", alpha=0.6)
+        sns.scatterplot(data=dfrs, x="iteration", y=metric, label=name_rs, color="red", marker="o", alpha=0.6)
 
         # Highlight the minimums with larger dots
         plt.scatter(min_bo_iteration, min_bo_value, color="blue", s=200, zorder=5, marker="*",edgecolor="black")

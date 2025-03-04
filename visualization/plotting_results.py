@@ -10,7 +10,7 @@ df_BO = load_data(path_BO)
 df_RS = load_data(path_RS)
 
 iter_lenght = 200 # max 200
-mean = 3 #human baseline
+mean = 2.03 #human baseline
 
 # -----------------
 hyperparams = ['iteration', 'acq_func', 'acq_value', 'accuracy', 'conv_nodes_1', 'conv_nodes_2', 'kernel_size_1', 'kernel_size_2', 'maxpool_size', 'dropout_rate', 'fc_nodes', 'lr']
