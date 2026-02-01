@@ -1,56 +1,57 @@
-# Bayesian Optimization
+# Bayesian Optimization for CNN Hyperparameters
 
-## Overview
-Bayesian Optimization is a powerful technique for optimizing black-box functions that are expensive to evaluate. This repository is dedicated to comparing different acquisition functions used in Bayesian Optimization. Acquisition functions guide the optimization process by determining the next most informative data point to evaluate.
+This repository contains a framework for performing **Bayesian Optimization (BO)** to automate the hyperparameter tuning of Convolutional Neural Networks (CNNs).
 
-## Objectives
-This project aims to:
+Developed as part of the *Active Machine Learning and Agency* (02463) course at the Technical University of Denmark (DTU), this project demonstrates the efficiency of Gaussian Process-based optimization over standard grid or random search methods.
 
-- Explore and analyze various acquisition functions employed in Bayesian Optimization.
-- Compare their performance across different benchmark problems.
-- Provide insights into selecting appropriate acquisition functions for diverse applications.
+## 🧠 Project Overview
 
-## Features
-- Implementation of commonly used acquisition functions such as:
-  - **Expected Improvement (EI)**
-  - **Upper Confidence Bound (UCB)**
-  - **Probability of Improvement (PI)**
-- Benchmark suite for testing optimization performance.
-- Visualizations to contrast and evaluate the behavior of acquisition functions.
+Training deep learning models requires selecting optimal hyperparameters—a process that is often computationally expensive and non-convex. This project solves that problem by treating the model training process as a "black-box function" and optimizing it using a probabilistic surrogate model.
 
-## Use Case
-This repository is beneficial for practitioners, researchers, and students who want to:
-- Understand how Bayesian Optimization works.
-- Learn how acquisition functions impact optimization outcomes.
-- Apply Bayesian Optimization to real-world black-box optimization tasks.
+### Core Components
+* **Objective Function**: The validation accuracy of a CNN trained on the MNIST dataset.
+* **Surrogate Model**: A Gaussian Process (GP) that models the probability distribution of the objective function.
+* **Acquisition Function**: Uses the `gp_hedge` strategy (probabilistically choosing between EI, PI, and LCB) to balance exploration (searching new areas) and exploitation (refining known good areas).
 
-## Prerequisites
-To use this codebase, ensure you have the following installed:
-- Python 3.8 or higher
-- Dependencies specified in `requirements.txt`.
+## ⚙️ Search Space Configuration
 
-## Installation
-1. Clone the repository:
+The optimizer explores a complex, high-dimensional mixed-integer space to find the optimal architecture:
+
+| Hyperparameter | Type | Range / Values | Description |
+| :--- | :--- | :--- | :--- |
+| `conv_nodes_1` | Integer | 8 - 48 | Output channels for 1st Conv layer |
+| `conv_nodes_2` | Integer | 8 - 48 | Output channels for 2nd Conv layer |
+| `kernel_size_1` | Categorical | 3, 5 | Filter size for 1st Conv layer |
+| `kernel_size_2` | Categorical | 3, 5 | Filter size for 2nd Conv layer |
+| `maxpool_size` | Integer | 2 - 4 | Stride/Kernel size for pooling |
+| `dropout_rate` | Categorical | 0.1 - 0.7 | Probability of neuron dropout |
+| `fc_nodes` | Integer | 32 - 512 | Neurons in the fully connected layer |
+
+## 🛠 Technology Stack
+
+* **PyTorch**: For building and training the CNN architecture.
+* **Scikit-Optimize (`skopt`)**: Implementation of the Bayesian Optimization engine (Gaussian Processes and minimization loop).
+* **NumPy & Pandas**: Data manipulation and result logging.
+* **Matplotlib**: Visualization of the optimization landscape and convergence.
+
+## 🚀 Installation & Usage
+
+### Prerequisites
+Ensure you have Python 3.8+ installed.
+
+1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/CarlSvejstrup/bayesian-optimization.git
-    ```
-2. Navigate to the project directory:
-    ```bash
+    git clone [https://github.com/CarlSvejstrup/bayesian-optimization.git](https://github.com/CarlSvejstrup/bayesian-optimization.git)
     cd bayesian-optimization
     ```
-3. Install dependencies:
+
+2.  **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
-## Usage
-Run the main script to start experimenting with different acquisition functions:
+### Running the Optimizer
+To start the optimization loop (default: 45 iterations with 5 initial random points):
+
 ```bash
 python main.py
-```
-
-Adjust parameters and settings in the configuration file (`config.yaml`) to customize your experiments.
-
----
-
-This project was completed as part of the coursework for 02463 Active machine learning and agency at the Technical University of Denmark (DTU).
